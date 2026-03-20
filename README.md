@@ -1,77 +1,159 @@
-# 🌱 AgriBot — AI Crop Disease Detector
+# 🌱 AgriBot — AI-Based Crop Disease Detection & Agricultural Chatbot
 
-## ⚡ Quick Start (3 steps only)
+## 📌 Overview
 
-### Step 1 — Copy your model files
+AgriBot is an AI-powered web application designed to assist farmers and agriculture enthusiasts in detecting crop diseases from leaf images and receiving actionable treatment suggestions. The system integrates a pre-trained deep learning model with a Django-based web interface and includes a chatbot for answering agricultural queries.
 
-Copy these 2 files from your OLD project into the `model/` folder here:
-
-```
-model/model.json          ← copy from old AgriChatbot/model/
-model/model_weights.h5    ← copy from old AgriChatbot/model/
-```
-
-### Step 2 — Run setup (Windows)
-
-Double-click `SETUP_AND_RUN.bat`
-
-OR run in terminal:
-
-```bash
-pip install -r requirements.txt
-python manage.py migrate
-python manage.py runserver
-```
-
-### Step 3 — Open browser
-
-Go to: **http://127.0.0.1:8000**
+This project demonstrates the integration of Machine Learning with full-stack web development for real-world agricultural applications.
 
 ---
 
-## ✅ What's upgraded
+## 🚀 Key Features
 
-| Before                                 | After                                  |
-| -------------------------------------- | -------------------------------------- |
-| Django 2.1                             | Django 4.2                             |
-| Hardcoded `C:/3/AgriChatbot/...` paths | Fully portable — works on any PC       |
-| `cv2.imshow()` in web server (crashed) | Proper image API response              |
-| Raw HttpResponse text                  | Clean JSON REST APIs                   |
-| No database storage                    | Predictions saved to DB (resume value) |
-| Basic HTML                             | Modern drag-drop UI with Grad-CAM      |
-| TF-IDF chatbot                         | Intent-based NLP with 40+ crop intents |
+- 📸 **Leaf Image Disease Detection** using Deep Learning
+- 🌿 **Crop & Disease Classification** with confidence score
+- 💊 **Remedy Suggestions** for identified diseases
+- 💬 **Interactive Chatbot** for agriculture-related queries
+- 📊 **Database Storage** for predictions and chat history
+- 🎨 **Modern User Interface** with real-time interaction
 
 ---
 
-## 📁 Project Structure
+## 🛠️ Tech Stack
+
+- **Backend:** Django (Python)
+- **Frontend:** HTML, CSS, JavaScript
+- **Machine Learning:** CNN Model (model.json + model_weights.h5)
+- **Database:** SQLite
+- **Version Control:** Git & GitHub
+
+---
+
+## 📂 Project Structure
 
 ```
 AgriChatbot/
-├── model/
-│   ├── model.json           ← COPY FROM YOUR OLD PROJECT
-│   └── model_weights.h5     ← COPY FROM YOUR OLD PROJECT
-├── ChatBotApp/
-│   ├── views.py             (all AI logic)
-│   ├── models.py            (database)
-│   ├── data/intents.json    (40+ NLP intents)
-│   └── templates/           (3 HTML pages)
-├── Chatbot/
-│   └── settings.py          (configuration)
-├── manage.py
+├── model/                  # Pre-trained ML model files
+├── ChatBotApp/             # Main Django app
+│   ├── models.py
+│   ├── views.py
+│   ├── templates/
+│   ├── static/
+│   └── data/
+├── Chatbot/                # Project settings
+├── db.sqlite3
 ├── requirements.txt
-└── SETUP_AND_RUN.bat        ← double-click to start
+├── manage.py
+└── README.md
 ```
 
 ---
 
-## 🔌 API Endpoints
+## ⚙️ Installation & Setup
 
-| Endpoint        | Method | What it does                             |
-| --------------- | ------ | ---------------------------------------- |
-| `/api/predict/` | POST   | Upload leaf → disease + remedy + heatmap |
-| `/api/chat/`    | POST   | Text question → NLP answer               |
-| `/api/voice/`   | POST   | Voice audio → transcript + answer        |
-| `/api/health/`  | GET    | Check if model is loaded correctly       |
-| `/api/history/` | GET    | Chat history for this session            |
+### 1️⃣ Clone Repository
 
-Check model status: http://127.0.0.1:8000/api/health/
+```bash
+git clone https://github.com/Saketh1825/AgriChatBot.git
+cd AgriChatBot
+```
+
+### 2️⃣ Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+### 3️⃣ Add Model Files
+
+Place your trained model files inside:
+
+```
+model/
+├── model.json
+├── model_weights.h5
+```
+
+### 4️⃣ Run Migrations
+
+```bash
+python manage.py migrate
+```
+
+### 5️⃣ Start Server
+
+```bash
+python manage.py runserver
+```
+
+### 6️⃣ Open Application
+
+```
+http://127.0.0.1:8000
+```
+
+---
+
+## 🧠 How It Works
+
+1. User uploads a leaf image
+2. The CNN model processes the image
+3. The system predicts crop type and disease
+4. Confidence score is generated
+5. Relevant remedies are displayed
+6. Chatbot handles additional user queries
+
+---
+
+## 📸 Screenshots
+
+### 🏠 Home Interface
+
+![Home](screenshots/home.png)
+
+### 💬 Chatbot Interface
+
+![Chat](screenshots/chat.png)
+
+### 📸 Disease Prediction Result
+
+![Prediction](screenshots/prediction.png)
+
+---
+
+## 🎯 Use Cases
+
+- Crop disease detection for farmers
+- Agricultural education and research
+- Smart farming solutions
+- AI-based advisory systems
+
+---
+
+## 📌 Future Enhancements
+
+- 🌐 Cloud deployment (Render / AWS)
+- 📱 Mobile application integration
+- 🌍 Multi-language chatbot support
+- ☁️ Weather API integration
+- 📊 Advanced analytics dashboard
+
+---
+
+## 👨‍💻 Author
+
+**Saketh Goudi**
+B.Tech CSE (Data Science)
+CMR College of Engineering & Technology
+
+---
+
+## ⭐ Acknowledgement
+
+This project is developed for academic and learning purposes to explore AI, Machine Learning, and Web Development integration.
+
+---
+
+## 📬 Contact
+
+Feel free to connect for collaboration or suggestions.
