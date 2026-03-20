@@ -1,0 +1,7 @@
+PASTE YOUR model.json AND model_weights.h5 FILES INTO THIS FOLDER.
+
+Copy from your old AgriChatbot/model/ folder:
+- model.json
+- model_weights.h5
+
+Then run: python manage.py runserver

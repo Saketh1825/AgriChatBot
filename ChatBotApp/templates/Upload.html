@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AgriBot — Upload Leaf</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--leaf:#1A6B2F;--leaf-light:#27A048;--sky:#E8F5E0;--cream:#FAFAF5;--soil:#2D1B00;--muted:#7A8B6F;--sun:#F5A623;--danger:#C0392B;--white:#fff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px}
+.back{align-self:flex-start;text-decoration:none;color:var(--muted);font-size:.85rem;margin-bottom:20px;display:flex;align-items:center;gap:5px}.back:hover{color:var(--leaf)}
+.card{background:var(--white);border-radius:18px;box-shadow:0 4px 28px rgba(45,27,0,.10);padding:32px;width:100%;max-width:500px}
+h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--leaf);margin-bottom:5px}
+.sub{color:var(--muted);font-size:.88rem;margin-bottom:24px}
+.drop{border:2px dashed rgba(26,107,47,.3);border-radius:12px;padding:44px 18px;text-align:center;background:var(--sky);cursor:pointer;position:relative;transition:all .22s}
+.drop:hover,.drop.over{border-color:var(--leaf);background:rgba(39,160,72,.08)}
+.drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+.drop-icon{font-size:2.6rem;margin-bottom:10px}
+.drop-text{font-weight:500}.drop-hint{font-size:.75rem;color:var(--muted);margin-top:4px}
+#prev{display:none;margin-top:18px}
+#prev img{width:100%;max-height:210px;object-fit:cover;border-radius:10px;display:block}
+#gradcam-wrap{display:none;margin-top:8px}
+#gc-img{width:100%;max-height:210px;object-fit:cover;border-radius:10px;border:2px solid var(--sun)}
+.gc-note{text-align:center;font-size:.7rem;color:var(--muted);margin-top:4px}
+.btn{width:100%;margin-top:18px;padding:14px;background:var(--leaf);color:#fff;border:none;border-radius:10px;font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn:hover{background:var(--leaf-light)}.btn:disabled{opacity:.55;cursor:not-allowed}
+.err{display:none;margin-top:14px;padding:11px 14px;border-radius:9px;background:#fde8e8;border:1px solid #f5c6c6;font-size:.8rem;color:var(--danger)}
+.result{display:none;margin-top:16px;border-radius:12px;overflow:hidden;border:1px solid rgba(26,107,47,.15)}
+.res-head{background:var(--leaf);color:#fff;padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+.res-head h3{font-family:'Syne',sans-serif;font-size:.9rem}
+.res-badge{background:rgba(255,255,255,.2);border-radius:20px;padding:2px 10px;font-size:.76rem;font-weight:600}
+.res-body{background:var(--sky);padding:14px 16px}
+.res-crop{font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600;color:var(--muted)}
+.res-disease{font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;margin:4px 0 10px}
+.res-remedy{font-size:.8rem;line-height:1.65;white-space:pre-line}
+.spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+<a href="/" class="back">← Back to AgriBot</a>
+<div class="card">
+  <h2>🍃 Upload Leaf Image</h2>
+  <p class="sub">AgriBot's CNN will diagnose diseases and suggest remedies instantly</p>
+  <div class="drop" id="drop">
+    <input type="file" id="file" accept="image/*"/>
+    <div class="drop-icon">📷</div>
+    <div class="drop-text">Drag & drop or click to upload</div>
+    <div class="drop-hint">JPG, PNG — max 10MB</div>
+  </div>
+  <div id="prev"><img id="prev-img" alt="Preview"/></div>
+  <div id="gradcam-wrap"><img id="gc-img" alt="Grad-CAM"/><div class="gc-note">🔥 Grad-CAM: AI attention heatmap</div></div>
+  <div class="err" id="err"></div>
+  <button class="btn" id="btn" disabled><span id="lbl">🔍 Detect Disease</span></button>
+  <div class="result" id="result">
+    <div class="res-head"><h3 id="r-title">Diagnosis</h3><span class="res-badge" id="r-badge"></span></div>
+    <div class="res-body">
+      <div class="res-crop" id="r-crop"></div>
+      <div class="res-disease" id="r-disease"></div>
+      <div class="res-remedy" id="r-remedy"></div>
+    </div>
+  </div>
+</div>
+<script>
+function getCookie(n){const m=document.cookie.match('(?:^|;)\\s*'+n+'=([^;]*)');return m?decodeURIComponent(m[1]):null}
+const CSRF=getCookie('csrftoken');
+let file=null;
+const drop=document.getElementById('drop'),fi=document.getElementById('file'),pi=document.getElementById('prev-img'),prev=document.getElementById('prev'),btn=document.getElementById('btn'),err=document.getElementById('err'),gw=document.getElementById('gradcam-wrap'),gc=document.getElementById('gc-img');
+function load(f){file=f;const r=new FileReader();r.onload=e=>{pi.src=e.target.result;prev.style.display='block';gw.style.display='none';err.style.display='none';document.getElementById('result').style.display='none';btn.disabled=false};r.readAsDataURL(f)}
+fi.onchange=e=>{if(e.target.files[0])load(e.target.files[0])};
+drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over')});
+drop.addEventListener('dragleave',()=>drop.classList.remove('over'));
+drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over');if(e.dataTransfer.files[0])load(e.dataTransfer.files[0])});
+btn.onclick=async()=>{
+  if(!file)return;const lbl=document.getElementById('lbl');btn.disabled=true;lbl.innerHTML='<div class="spinner"></div> Analysing…';err.style.display='none';
+  const fd=new FormData();fd.append('image',file);
+  try{
+    const r=await fetch('/api/predict/',{method:'POST',headers:{'X-CSRFToken':CSRF},body:fd});
+    const d=await r.json();
+    if(d.error){err.textContent='⚠️ '+d.error;err.style.display='block';return}
+    document.getElementById('r-crop').textContent='Crop: '+d.crop;
+    document.getElementById('r-disease').textContent=d.disease;
+    document.getElementById('r-badge').textContent=d.confidence+'% confident';
+    document.getElementById('r-remedy').textContent=d.remedy;
+    document.getElementById('r-title').textContent=d.disease.toLowerCase()==='healthy'?'✅ Healthy Plant':'⚠️ Disease Detected';
+    document.getElementById('result').style.display='block';
+    if(d.gradcam){gc.src='data:image/jpeg;base64,'+d.gradcam;gw.style.display='block'}
+  }catch(e){err.textContent='⚠️ Network error.';err.style.display='block'}
+  finally{btn.disabled=false;lbl.innerHTML='🔍 Detect Again'}
+};
+</script>
+</body>
+</html>

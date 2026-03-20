@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>AgriBot — Voice</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{--leaf:#1A6B2F;--leaf-light:#27A048;--sky:#E8F5E0;--cream:#FAFAF5;--soil:#2D1B00;--muted:#7A8B6F;--danger:#C0392B;--white:#fff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 20px}
+.back{align-self:flex-start;text-decoration:none;color:var(--muted);font-size:.85rem;margin-bottom:20px}.back:hover{color:var(--leaf)}
+.card{background:var(--white);border-radius:18px;box-shadow:0 4px 28px rgba(45,27,0,.10);padding:32px;width:100%;max-width:460px;text-align:center}
+h2{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;color:var(--leaf);margin-bottom:6px}
+.sub{color:var(--muted);font-size:.88rem;margin-bottom:28px}
+.mic{width:96px;height:96px;border-radius:50%;background:var(--sky);border:3px solid rgba(26,107,47,.2);font-size:2.4rem;cursor:pointer;transition:all .22s;margin:0 auto 20px;display:flex;align-items:center;justify-content:center}
+.mic:hover{background:rgba(39,160,72,.15);transform:scale(1.05)}.mic.rec{background:var(--danger);border-color:var(--danger);animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.status{font-size:.88rem;color:var(--muted);min-height:20px;margin-bottom:20px}
+.status.active{color:var(--danger);font-weight:600}
+.chat{background:var(--sky);border-radius:12px;padding:14px;text-align:left;max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.chat:empty::before{content:'Your conversation will appear here…';color:var(--muted);font-size:.82rem}
+.mu{background:var(--leaf);color:#fff;border-radius:12px 12px 2px 12px;padding:9px 13px;font-size:.82rem;align-self:flex-end;max-width:88%}
+.mb{background:#fff;border:1px solid rgba(26,107,47,.12);border-radius:12px 12px 12px 2px;padding:9px 13px;font-size:.82rem;white-space:pre-line;max-width:88%}
+.home-btn{display:block;margin-top:18px;padding:11px;background:var(--leaf);color:#fff;text-decoration:none;border-radius:10px;font-family:'Syne',sans-serif;font-weight:700;font-size:.9rem;transition:background .2s}.home-btn:hover{background:var(--leaf-light)}
+</style>
+</head>
+<body>
+<a href="/" class="back">← Back to AgriBot</a>
+<div class="card">
+  <h2>🎙️ Voice Assistant</h2>
+  <p class="sub">Tap the mic and ask your farming question out loud</p>
+  <button class="mic" id="mic">🎙️</button>
+  <p class="status" id="status">Tap to start recording</p>
+  <div class="chat" id="chat"></div>
+  <a href="/" class="home-btn">Back to Full Dashboard</a>
+</div>
+<script>
+function getCookie(n){const m=document.cookie.match('(?:^|;)\\s*'+n+'=([^;]*)');return m?decodeURIComponent(m[1]):null}
+const CSRF=getCookie('csrftoken');
+let mr,chunks=[],rec=false;
+const mic=document.getElementById('mic'),status=document.getElementById('status'),chat=document.getElementById('chat');
+function add(cls,text){const d=document.createElement('div');d.className=cls;d.textContent=text;chat.appendChild(d);chat.scrollTop=chat.scrollHeight}
+mic.onclick=async()=>{
+  if(!rec){
+    try{
+      const s=await navigator.mediaDevices.getUserMedia({audio:true});
+      mr=new MediaRecorder(s);chunks=[];
+      mr.ondataavailable=e=>chunks.push(e.data);
+      mr.onstop=async()=>{
+        status.textContent='Processing…';status.className='status active';
+        const blob=new Blob(chunks,{type:'audio/wav'});
+        const fd=new FormData();fd.append('audio',blob,'voice.wav');
+        try{
+          const r=await fetch('/api/voice/',{method:'POST',headers:{'X-CSRFToken':CSRF},body:fd});
+          const d=await r.json();
+          if(d.transcript)add('mu','🎙️ '+d.transcript);
+          add('mb','🌱 '+(d.response||d.error||'Could not understand that.'));
+          status.textContent='Tap to ask another question';status.className='status';
+        }catch(e){status.textContent='Error processing audio.';status.className='status'}
+        s.getTracks().forEach(t=>t.stop());
+      };
+      mr.start();rec=true;mic.textContent='⏹️';mic.classList.add('rec');
+      status.textContent='Recording… tap again to stop';status.className='status active';
+    }catch(e){status.textContent='Microphone access denied.';status.className='status'}
+  }else{mr.stop();rec=false;mic.textContent='🎙️';mic.classList.remove('rec')}
+};
+</script>
+</body>
+</html>
