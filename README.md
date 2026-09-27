@@ -154,6 +154,4 @@ This project is developed for academic and learning purposes to explore AI, Mach
 
 ---
 
-## 📬 Contact
 
-Feel free to connect for collaboration or suggestions.
